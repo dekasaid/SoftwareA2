@@ -1,123 +1,132 @@
-
-
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var deltaX = 0;
-var deltaY = 0;
 
-function drawTriangle() {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // the triangle
-    ctx.beginPath();
-    ctx.moveTo(200 + deltaX, 100 + deltaY);
-    ctx.lineTo(170 + deltaX, 150 + deltaY);
-    ctx.lineTo(230 + deltaX, 150 + deltaY);
-    ctx.closePath();
-   
-    // the outline
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "rgba(102, 102, 102, 1)";
-    ctx.stroke();
-   
-    // the fill color
-    ctx.fillStyle = "rgba(255, 204, 0, 1)";
-    ctx.fill();
+//position values 
+var xPos = canvas.width / 2;
+var yPos = canvas.height - 30;
 
-    //window.requestAnimationFrame(drawTriangle);
+var radius = 10;
+
+
+var paddleH = 20,
+    paddleW = 50,
+    paddle = (canvas.width - paddleW) / 2;
+
+//moving values 
+var moveX = 2;
+var moveY = -2;
+
+//boolean if keyinput is pressed left or right
+var leftPress = false;
+var rightPress = false;
+
+
+
+//add an event listener
+
+document.addEventListener("keydown", moveDown, false);
+document.addEventListener("keyup", moveUp, false);
+
+
+function moveDown(e) {
+  if(e.key == "Right" || e.key == "ArrowRight") {
+      rightPress = true;
   }
-drawTriangle();
-
- 
-window.addEventListener("keydown", keysPressed, false);
-window.addEventListener("keyup", keysReleased, false);
- 
-var keys = [];
- 
-function keysPressed(e) {
-    // store an entry for every key pressed
-    keys[e.keyCode] = true;
- 
-    // left
-    if (keys[37]) {
-      deltaX -= 2;
-    }
- 
-    // right
-    if (keys[39]) {
-      deltaX += 2;
-    }
- 
-    // down
-    if (keys[38]) {
-      deltaY -= 2;
-    }
- 
-    // up
-    if (keys[40]) {
-      deltaY += 2;
-    }
- 
-    e.preventDefault();
- 
-    drawTriangle();
-}
- 
-function keysReleased(e) {
-    // mark keys that were released
-    keys[e.keyCode] = false;
-} 
-
-
-function Enemy(x, y)
-{
-    this.x = x;
-    this.y = y;
-    this.width = 20;
-    this.height = 20;
-    this.direction = +1;
+  else if(e.key == "Left" || e.key == "ArrowLeft") {
+      leftPress = true;
+  }
 }
 
-Enemy.prototype.draw = function()
+function moveUp(e) {
+  if(e.key == "Right" || e.key == "ArrowRight") {
+      rightPress = false;
+  }
+  else if(e.key == "Left" || e.key == "ArrowLeft") {
+      leftPress = false;
+  }
+}
+
+//draw player function
+function PlayerPong()
 {
-    ctx.fillStyle = "black";
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.arc(xPos, yPos, radius, 0, Math.PI*2);
+  ctx.fill();
+  ctx.closePath();
 
-};
 
-Enemy.prototype.update = function(){
 
-    this.x = this.x + this.direction;
-    if(this.x <=0 || this.x + this.width >= canvas.width)
+  //have an object bounce off the walls
+  if(xPos + moveX > canvas.width-radius || xPos + moveX < radius) {
+
+      ctx.fillStyle = 'hsl(' + 360 * Math.random() + ', 50%, 50%)';
+      moveX = -moveX;
+    }
+    
+  if(yPos + moveY < radius) {
+      moveY = -moveY;
+    }
+    else if (yPos + moveY > canvas.height-radius) 
+    { 
+      if(xPos > paddle && xPos < paddle + paddleW)
+      {
+          moveY = -moveY;
+      }
+      else
+      { alert("You Lose! Try Again");
+        document.location.reload();
+        clearInterval(interval);
+      
+      }
+
+    }
+  
+  
+    if(rightPress && paddle < canvas.width-paddleW) 
     {
-        this.direction *= -1;
+      paddle += 5;
+      if (paddle + paddleW > canvas.width)
+      {
+          paddle = canvas.width - paddleW;
+      }
     }
-};
+    else if(leftPress && paddle > 0) 
+    {
+        paddle -= 5;
+        if (paddle < 0)
+        {
+            paddle = 0;
+        }
+    }
 
-var block = new Enemy(20, 25);
-var block1 = new Enemy(90, 40);
-var block2 = new Enemy(280, 220);
+
+  xPos += moveX;
+  yPos += moveY;
+  paddleDraw();
+  canvasBG();
+}
 
 
-function drawCanvas()
+/*function canvasBG()
+{
+  document.body.style.background = "url('starryBG.jpg') no-repeat center";
+}
+*/
+function paddleDraw()
+{
 
-{ 
 
-block.update();
-block.draw();
-
-block1.update();
-block1.draw();
-
-block2.update()
-block2.draw();
-
-window.requestAnimationFrame(drawCanvas);
+  ctx.beginPath();
+  ctx.lineWidth = "3";
+  ctx.strokeStyle = "purple"; // Green path
+  ctx.rect(paddle, canvas.height-paddleH, paddleW, paddleH);
+  ctx.stroke();
+  
 
 }
 
-drawCanvas();
-
-
+var interval = setInterval(PlayerPong, 10);
 
